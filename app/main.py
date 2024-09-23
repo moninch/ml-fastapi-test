@@ -13,11 +13,6 @@ class PacketData(BaseModel):
     length: int
     time: float
 
-def preprocess_data(features):
-
-    features = np.array(features).reshape(1, -1)
-    return features
-
 
 @app.post('/classify_packet')
 async def classify_packet(data: PacketData):
