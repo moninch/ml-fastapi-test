@@ -25,17 +25,17 @@ def extract_features(pcap_file, label=0):
     capture.close()
     return features
 
-def label_ddos_attack(row, syn_threshold=100, ack_threshold=100):
-    if row['SYN_Flag'] == 1 & row['ACK_Flag'] == 0:
-        if (df[(df['Src_IP'] == row['Src_IP']) & (df['SYN_Flag'] == 1)].shape[0] > syn_threshold):
-            return 1  # Обнаружена атака SYN-флуд
+# def label_ddos_attack(row, syn_threshold=100, ack_threshold=100):
+#     if (row['SYN_Flag'] == 1) & (row['ACK_Flag'] == 0):
+#         if (df[(df['Src_IP'] == row['Src_IP']) & (df['SYN_Flag'] == 1)].shape[0] > syn_threshold):
+#             return 1  # Обнаружена атака SYN-флуд
 
-    # Проверка на ACK-флуд
-    elif row['ACK_Flag'] == 1 & row['SYN_Flag'] == 0:
-        if (df[(df['Src_IP'] == row['Src_IP']) & (df['ACK_Flag'] == 1)].shape[0] > ack_threshold):
-            return 1  # Обнаружена атака ACK-флуд
+#     # Проверка на ACK-флуд
+#     elif (row['ACK_Flag'] == 1) & (row['SYN_Flag'] == 0):
+#         if (df[(df['Src_IP'] == row['Src_IP']) & (df['ACK_Flag'] == 1)].shape[0] > ack_threshold):
+#             return 1  # Обнаружена атака ACK-флуд
     
-    return 0  # Нет атаки
+#     return 0  # Нет атаки
 
 
 benign_features = extract_features("C:\Learning\ml-fastapi-test\\trafic\\benign-pc.pcapng")
@@ -49,7 +49,9 @@ benign_features = extract_features("C:\Learning\ml-fastapi-test\\trafic\\benign-
 all_features = benign_features
 
 df = pd.DataFrame(all_features, columns=['Protocol', 'Length', 'Time', 'Src_IP', 'Dst_IP', 'Src_Port', 'Dst_Port', 'SYN_Flag', 'ACK_Flag', 'Label'])
-df['Label'] = df.apply(label_ddos_attack, axis=1)
+
+# df['Label'] = df.apply(label_ddos_attack, axis=1)
+
 df = pd.get_dummies(df, columns=['Protocol'])
 
 df.to_csv("traffic_dataset.csv", index=False)
