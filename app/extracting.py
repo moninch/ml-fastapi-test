@@ -1,5 +1,5 @@
 import pandas as pd
-
+# tshark -r CIC-DDoS-2019-Benign.pcap -T fields -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e tcp.flags.syn -e tcp.flags.ack -e frame.len -e frame.time_epoch -e _ws.col.Protocol -E header=y -E separator=, >CIC-DDoS-2019-Benign.csv
 def label_ddos(df, syn_threshold=100, ack_threshold=100):
     required_columns = ['SYN_Flag', 'ACK_Flag', 'Src_IP']
 
@@ -40,6 +40,6 @@ all_features.rename(columns={
 
 df = label_ddos(all_features)
 
-df.to_csv("traffic_dataset.csv", index=False)
+df.to_csv("trafic/traffic_dataset.csv", index=False)
 
 print('Обработка завершена')
