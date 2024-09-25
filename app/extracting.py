@@ -1,7 +1,6 @@
 import pandas as pd
 # tshark -r CIC-DDoS-2019-Benign.pcap -T fields -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e tcp.flags.syn -e tcp.flags.ack -e frame.len -e frame.time_epoch -e _ws.col.Protocol -E header=y -E separator=, >CIC-DDoS-2019-Benign.csv
 def label_ddos(df, syn_threshold=100, ack_threshold=100):
-    required_columns = ['SYN_Flag', 'ACK_Flag', 'Src_IP']
 
     syn_counts = df[df['SYN_Flag'] == 1].groupby('Src_IP').size()
     ack_counts = df[df['ACK_Flag'] == 1].groupby('Src_IP').size()
