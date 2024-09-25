@@ -19,6 +19,7 @@ class PacketData(BaseModel):
     dst_port: conint(ge=0, le=65535)
     syn_flag: conint(ge=0, le=1)  
     ack_flag: conint(ge=0, le=1)
+    
 @app.post('/classify_packet')
 async def classify_packet(data: List[PacketData]):
     results = []
