@@ -20,6 +20,7 @@ site_build
 venv
 docs.zip
 archive.zip
+traffic_dataset.csv
 
 # vim temporary files
 *~
