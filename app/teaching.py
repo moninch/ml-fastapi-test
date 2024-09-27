@@ -9,17 +9,19 @@ df = pd.read_csv("C:\Learning\ml-fastapi-test\\trafic\\traffic_dataset.csv")
 
 X = df.drop('label', axis=1)
 y = df['label']
-
+# Преобразование ip в числовые значения
 encoder = OrdinalEncoder()
 X_encoded = encoder.fit_transform(X[['ip.src', 'ip.dst']])
 X[['ip.src', 'ip.dst']] = X_encoded
 
+# Преобразование протокола в числовые значения
 encoder = OneHotEncoder(handle_unknown='ignore')
 X_encoded = encoder.fit_transform(X[['_ws.col.protocol']]).toarray()
 
 X = pd.concat([X, pd.DataFrame(X_encoded)], axis=1)
 X = X.drop('_ws.col.protocol', axis=1)
 
+# Преобразование целевой переменной в числовые значения
 X.columns = X.columns.astype(str)
 
 scaler = StandardScaler()
@@ -34,7 +36,7 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dropout(0.3),
     tf.keras.layers.Dense(64, activation='relu'),
     tf.keras.layers.Dropout(0.3),
-    tf.keras.layers.Dense(1, activation='sigmoid')  # Выходной слой для бинарной классификации
+    tf.keras.layers.Dense(1, activation='sigmoid')  
 ])
 
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
@@ -51,4 +53,4 @@ plt.ylabel('Точность')
 plt.legend()
 plt.show()
 
-model.save("packet_classifier_model.h5")
+model.save("trafic/packet_classifier_model.h5")

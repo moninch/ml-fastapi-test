@@ -1,6 +1,9 @@
 import pandas as pd
 
+# Выкачка информации из pcab
 # tshark -r benign.pcap -T fields -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e tcp.flags -e frame.len -e frame.time_epoch -e _ws.col.Protocol -E header=y -E separator=, > benign.csv
+
+# Преобразование флагов в числовые значения
 def extract_flags(df):
     df['tcp.flags'] = df['tcp.flags'].fillna('0').apply(lambda x: int(str(x), 16))
 
