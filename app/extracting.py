@@ -11,10 +11,14 @@ def extract_flags(df):
     return df
 
 def aggregate_traffic(df):
+
     if 'tcp.flags.fin' not in df.columns:
         df['tcp.flags.fin'] = 0
     if 'tcp.flags.rst' not in df.columns:
         df['tcp.flags.rst'] = 0
+
+    df['ip.src'] = df['ip.src'].astype(str)
+    df['ip.dst'] = df['ip.dst'].astype(str) 
 
     aggregation = df.groupby(['ip.src', 'ip.dst', '_ws.col.protocol']).agg(
         syn_count=pd.NamedAgg(column='tcp.flags.syn', aggfunc='sum'),

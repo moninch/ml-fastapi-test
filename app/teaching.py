@@ -1,15 +1,14 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from app.extracting import extract_features
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 df = pd.read_csv("C:\Learning\ml-fastapi-test\\trafic\\traffic_dataset.csv")
 
-X = df.drop('Label', axis=1)
-y = df['Label']
+X = df.drop('label', axis=1)
+y = df['label']
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
