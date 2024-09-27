@@ -1,44 +1,61 @@
 import pandas as pd
-# tshark -r CIC-DDoS-2019-Benign.pcap -T fields -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e tcp.flags.syn -e tcp.flags.ack -e frame.len -e frame.time_epoch -e _ws.col.Protocol -E header=y -E separator=, >CIC-DDoS-2019-Benign.csv
-def label_ddos(df, syn_threshold=100, ack_threshold=100):
 
-    syn_counts = df[df['SYN_Flag'] == 1].groupby('Src_IP').size()
-    ack_counts = df[df['ACK_Flag'] == 1].groupby('Src_IP').size()
+# tshark -r benign.pcap -T fields -e ip.src -e ip.dst -e tcp.srcport -e tcp.dstport -e tcp.flags -e frame.len -e frame.time_epoch -e _ws.col.Protocol -E header=y -E separator=, > benign.csv
+def extract_flags(df):
+    df['tcp.flags'] = df['tcp.flags'].fillna('0').apply(lambda x: int(str(x), 16))
 
-    df['Label'] = 0
-    df.loc[df['SYN_Flag'] == 1, 'Label'] = df['Src_IP'].map(syn_counts) > syn_threshold
-    df.loc[df['ACK_Flag'] == 1, 'Label'] = df['Src_IP'].map(ack_counts) > ack_threshold
-
-    df['Label'] = df['Label'].astype(int)
+    df['tcp.flags.syn'] = df['tcp.flags'].apply(lambda x: int(x) & 0x02 > 0)
+    df['tcp.flags.ack'] = df['tcp.flags'].apply(lambda x: int(x) & 0x10 > 0)
+    df['tcp.flags.fin'] = df['tcp.flags'].apply(lambda x: int(x) & 0x01 > 0)
+    df['tcp.flags.rst'] = df['tcp.flags'].apply(lambda x: int(x) & 0x04 > 0)
     return df
 
-def load_tshark_csv(csv_file, label):
-    df = pd.read_csv(csv_file, dtype={'SYN_Flag': 'int', 'ACK_Flag': 'int', 'Src_IP': 'str'}, low_memory=False)
-    df['Label'] = label
-    return df
+def aggregate_traffic(df):
+    if 'tcp.flags.fin' not in df.columns:
+        df['tcp.flags.fin'] = 0
+    if 'tcp.flags.rst' not in df.columns:
+        df['tcp.flags.rst'] = 0
+
+    aggregation = df.groupby(['ip.src', 'ip.dst', '_ws.col.protocol']).agg(
+        syn_count=pd.NamedAgg(column='tcp.flags.syn', aggfunc='sum'),
+        ack_count=pd.NamedAgg(column='tcp.flags.ack', aggfunc='sum'),
+        fin_count=pd.NamedAgg(column='tcp.flags.fin', aggfunc='sum'),
+        rst_count=pd.NamedAgg(column='tcp.flags.rst', aggfunc='sum'),
+        total_bytes=pd.NamedAgg(column='frame.len', aggfunc='sum'),
+        packet_count=pd.NamedAgg(column='ip.src', aggfunc='size'),
+        label= pd.NamedAgg(column='Label', aggfunc='max')
+    ).reset_index()
+
+    return aggregation
 
 
+def load_tshark_csv(benign_files, malicious_files):
+    benign_dfs = [pd.read_csv(file, low_memory=False) for file in benign_files]
+    benign_data = pd.concat(benign_dfs, ignore_index=True)
+    benign_data['Label'] = 0  
 
-benign_features = load_tshark_csv("C:/Learning/ml-fastapi-test/trafic/benign-pc.csv", 0)
-benign_pc_features = load_tshark_csv("C:/Learning/ml-fastapi-test/trafic/benign-pc.csv", 0)
-cic_benign_features = load_tshark_csv("C:/Learning/ml-fastapi-test/trafic/CIC-DDoS-2019-Benign.csv", 0)
+    malicious_dfs = [pd.read_csv(file, low_memory=False) for file in malicious_files]
+    malicious_data = pd.concat(malicious_dfs, ignore_index=True)
+    malicious_data['Label'] = 1  
 
-syn_ack_features = load_tshark_csv("C:/Learning/ml-fastapi-test/trafic/syn_ack_random.csv", 1)
-syn_flood_features = load_tshark_csv("C:/Learning/ml-fastapi-test/trafic/syn_flood_25.csv", 1)
+    all_data = pd.concat([benign_data, malicious_data], ignore_index=True)
 
-all_features = pd.concat([benign_features, benign_pc_features, cic_benign_features, syn_ack_features, syn_flood_features], ignore_index=True)
+    return all_data
 
-all_features.rename(columns={
-    'tcp.flags.syn': 'SYN_Flag',
-    'tcp.flags.ack': 'ACK_Flag',
-    'ip.src': 'Src_IP',
-    'ip.dst': 'Dst_IP',
-    'tcp.srcport': 'Src_Port',
-    'tcp.dstport': 'Dst_Port'
-}, inplace=True)
+benign_files = [
+    "C:/Learning/ml-fastapi-test/trafic/benign-pc.csv",
+    "C:/Learning/ml-fastapi-test/trafic/benign.csv"
+]
 
-df = label_ddos(all_features)
+malicious_files = [
+    "C:/Learning/ml-fastapi-test/trafic/syn_ack_random.csv", 
+    "C:/Learning/ml-fastapi-test/trafic/syn_flood_25.csv",
+    "C:/Learning/ml-fastapi-test/trafic/CIC-DDoS-2019-Benign.csv"
+]
 
+df = load_tshark_csv(benign_files, malicious_files)
+df = extract_flags(df)
+df = aggregate_traffic(df)
 df.to_csv("trafic/traffic_dataset.csv", index=False)
 
 print('Обработка завершена')
