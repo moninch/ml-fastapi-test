@@ -29,6 +29,8 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 
 t = model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test))
 
+loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
+print("Точность на тестовых данных:", accuracy)
 
 plt.plot(t.history['accuracy'], label='Точность на обучении')
 plt.plot(t.history['val_accuracy'], label='Точность на проверке')
