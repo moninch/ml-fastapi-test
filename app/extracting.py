@@ -11,6 +11,9 @@ def extract_flags(df):
     df['tcp.flags.ack'] = df['tcp.flags'].apply(lambda x: int(x) & 0x10 > 0)
     df['tcp.flags.fin'] = df['tcp.flags'].apply(lambda x: int(x) & 0x01 > 0)
     df['tcp.flags.rst'] = df['tcp.flags'].apply(lambda x: int(x) & 0x04 > 0)
+    df['frame.time_epoch'] = pd.to_numeric(df['frame.time_epoch'], errors='coerce')
+    df['time_diff'] = df.groupby(['ip.src', 'ip.dst'])['frame.time_epoch'].diff().fillna(0)
+
     return df
 
 def aggregate_traffic(df):
@@ -30,6 +33,7 @@ def aggregate_traffic(df):
         rst_count=pd.NamedAgg(column='tcp.flags.rst', aggfunc='sum'),
         total_bytes=pd.NamedAgg(column='frame.len', aggfunc='sum'),
         packet_count=pd.NamedAgg(column='ip.src', aggfunc='size'),
+        avg_time_diff=pd.NamedAgg(column='time_diff', aggfunc='mean'),
         label= pd.NamedAgg(column='Label', aggfunc='max')
     ).reset_index()
 
