@@ -30,7 +30,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2)
 model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(64, activation='relu', input_shape=(X_train.shape[1],)),
     tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(32, activation='relu'),
     tf.keras.layers.Dropout(0.2),
     tf.keras.layers.Dense(1, activation='sigmoid')  
 ])
