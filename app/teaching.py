@@ -9,10 +9,6 @@ df = pd.read_csv("C:\Learning\ml-fastapi-test\\trafic\\traffic_dataset.csv")
 
 X = df.drop('label', axis=1)
 y = df['label']
-# Преобразование ip в числовые значения
-encoder = OrdinalEncoder()
-X_encoded = encoder.fit_transform(X[['ip.src', 'ip.dst']])
-X[['ip.src', 'ip.dst']] = X_encoded
 
 # Преобразование протокола в числовые значения
 encoder = OneHotEncoder(handle_unknown='ignore')

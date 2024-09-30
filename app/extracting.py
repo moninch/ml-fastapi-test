@@ -37,6 +37,9 @@ def aggregate_traffic(df):
         label= pd.NamedAgg(column='Label', aggfunc='max')
     ).reset_index()
 
+    aggregation = aggregation.sort_values(by=['ip.src'])
+    aggregation = aggregation.drop(columns=['ip.src', 'ip.dst'])
+
     return aggregation
 
 
